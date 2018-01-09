@@ -6,11 +6,12 @@ Morse::Morse(uint8_t outputPin, uint8_t listenPin, uint32_t rate, uint8_t tonePi
         _rate = rate;
         _speaker_pin = tonePin;
         txTimer = new Timer(_rate, &Morse::transmitting, *this);
+        rxTimer = new Timer(_rate, &Morse::receiving, *this);
 };
 
 void Morse::begin(void) {
     pinMode(_output_pin, OUTPUT);
-    pinMode(_listen_pin, INPUT_PULLDOWN);
+    pinMode(_listen_pin, INPUT);
 };
 
 // argument a string, returns binary morse code
@@ -100,47 +101,26 @@ void Morse::outLow(void) {
     noTone(_speaker_pin);
 };
 
+// stop the timers
 void Morse::stop(void) {
     txTimer->stop();
+    rxTimer->stop();
 };
 
 void Morse::listen(void) {
     attachInterrupt(_listen_pin, &Morse::receiving, CHANGE);
-    Particle.publish( "listening" );
 };
 
 void Morse::receiving(void) {
+    // rxTimer->start();
+    // set an interrupt to listen for changes on the listening pin
+    // continues to call until end of message of blank for 3sec
 
-    // store a pair of values [HIGH/LOW, millis]
-    morseRx.push_back(std::make_tuple( millis(), pinReadFast(_listen_pin) ) );
-    Particle.publish( "receiving" );
+    val = pinReadFast(_listen_pin);       // read the input pin
+    time = millis();
 
 };
 
 void Morse::decode(void) {
-
-    var time tick1 = std::get<0>(morseRx[0]);
-    var time tick2 = std::get<1>(morseRx[0]);
-    var time tick3 = std::get<2>(morseRx[0]);
-    var time tick4 = std::get<3>(morseRx[0]);
-    // mills 1-0 = time, value of 0 = high or low
-    // time = 1 unit, value low interletter high dit
-    // time = 3 units, value low next letter high dah
-    // time = 7 units, value low space
-    // time > 8 new message
-
-    // morseTiming
-
-    // Edit/Update: if you were looping over you vector and i is your integer index used during the loop, then to access to tuple you can do this:
-    //
-    // int intOne, intTwo;
-    //
-    // intOne = std::get<0>(ints[i]);
-    // intTwo = std::get<1>(ints[i]);
-
-    Particle.publish( "Mills1", String( tick1 ) );
-    Particle.publish( "Mills2", String( tick2 ) );
-    Particle.publish( "Mills3", String( tick3 ) );
-    Particle.publish( "Mills4", String( tick4 ) );
 
 };
